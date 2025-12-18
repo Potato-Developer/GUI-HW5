@@ -5,10 +5,10 @@
 ---
 
 ## Live Demo (GitHub Pages)
-https://YOUR_USERNAME.github.io/YOUR_REPOSITORY_NAME/
+https://potato-developer.github.io/GUI-HW5/
 
 ## Source Code Repository
-https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME
+https://github.com/Potato-Developer/GUI-HW5
 
 ---
 
