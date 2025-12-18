@@ -1,0 +1,138 @@
+/*
+  HW5 : Scrabble Drag-and-Drop Game
+  Author: Obadah Shikh Khamis
+  Course:   UMass Lowell COMP 4610 GUI I
+  Date: 12/17/2025
+
+  Description:
+    This file is part of Homework 5 and implements a simplified Scrabble
+    drag-and-drop game. It includes tile bag management, a rack system,
+    a one-row Scrabble board, scoring logic, bonus squares, word
+    validation through API + fallback dictionary, and full game state
+    reset functionality.
+
+  Acknowledgements:
+    • Scrabble tile distribution file: Jesse Heines (included in assignment)
+    • All work is my own except for starter assets provided in HW instructions.
+*/
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scrabble Game</title>
+
+  <!-- jQuery UI CSS -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <h1 class="title">Scrabble Game</h1>
+      <div class="subtitle">Build words, score points, beat your high score.</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Left column -->
+    <aside class="panel">
+      <section class="card" id="instructions">
+        <h2 class="card__title">How to Play</h2>
+
+        <details open>
+          <summary>Quick steps</summary>
+          <ul class="list">
+            <li>Drag tiles from the rack onto the board.</li>
+            <li>Tiles should form a connected word (no gaps).</li>
+            <li>Click <b>Validate Word</b> to check the word and score it.</li>
+            <li>Use <b>Refresh Letters</b> to get a new rack.</li>
+            <li>Use <b>Clear Board</b> to return tiles to the rack.</li>
+            <li>Use <b>Start Over</b> to reset everything.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section class="card" id="rules">
+        <h2 class="card__title">Rules</h2>
+        <details>
+          <summary>Show rules</summary>
+          <ul class="list">
+            <li>Words must be at least 2 letters.</li>
+            <li>Bonus squares can multiply your score.</li>
+            <li>Double-word squares multiply the total word score by 2.</li>
+            <li>Once a word is validated, repeating it won’t score again.</li>
+            <li>Blank tiles can be used as any letter (0 points).</li>
+          </ul>
+        </details>
+      </section>
+    </aside>
+
+    <!-- Right column -->
+    <section class="game">
+      <!-- Scoreboard -->
+      <section class="card scorecard" id="score-container">
+        <div class="scoreline">
+          <div><span class="label">Word:</span> <span id="current-word">—</span></div>
+          <div><span class="label">Score:</span> <span id="score">0</span></div>
+          <div><span class="label">Remaining:</span> <span id="remaining-tiles">—</span></div>
+        </div>
+        <div class="highline">
+          <span class="label">Highest Score:</span> <span id="highest-score">—</span>
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <section class="card controls" id="controls">
+        <button class="btn primary" id="validate-word">Validate Word</button>
+        <button class="btn" id="refresh-letters">Refresh Letters</button>
+        <button class="btn" id="clear-board">Clear Board</button>
+        <button class="btn danger" id="new-game">Start Over</button>
+      </section>
+
+      <!-- Board -->
+      <section class="card boardwrap">
+        <h2 class="card__title">Board</h2>
+
+        <div id="scrabble-board-container" aria-label="Scrabble board">
+          <img id="scrabble-board" src="./Scrabble_Board_OneLine.png" alt="Scrabble board row">
+          <div id="scrabble-board-overlay" aria-hidden="true"></div>
+        </div>
+
+        <p class="hint">
+          Tip: If tiles look like they cover multiple squares, set your JS board size to 15 to match the image.
+        </p>
+      </section>
+
+      <!-- Rack -->
+      <section class="card rackwrap" id="tile-rack-container">
+        <h2 class="card__title">Tile Rack</h2>
+
+        <div id="tile-rack-background" aria-hidden="true"></div>
+        <div id="tile-rack" aria-label="Tile rack"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer id="footer" class="footer">
+    <p>© 2025 Luka Metias. All rights reserved.</p>
+  </footer>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-message">
+    <div class="modal__card">
+      <div id="modal-message" class="modal__message">Message</div>
+      <button id="close-modal" class="btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <script src="./Scrabble_Pieces_AssociativeArray_Jesse.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>

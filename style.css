@@ -1,0 +1,339 @@
+/*
+  HW5 : Scrabble Drag-and-Drop Game
+  Author: Obadah Shikh Khamis
+  Course:   UMass Lowell COMP 4610 GUI I
+  Date: 12/17/2025
+
+  Description:
+    This file is part of Homework 5 and implements a simplified Scrabble
+    drag-and-drop game. It includes tile bag management, a rack system,
+    a one-row Scrabble board, scoring logic, bonus squares, word
+    validation through API + fallback dictionary, and full game state
+    reset functionality.
+
+  Acknowledgements:
+    • Scrabble tile distribution file: Jesse Heines (included in assignment)
+    • All work is my own except for starter assets provided in HW instructions.
+*/
+
+:root{
+  --bg: #0b1220;
+  --panel: rgba(255,255,255,0.08);
+  --card: #0f172a;
+  --card2: #111c35;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: rgba(255,255,255,0.12);
+
+  --accent: #3b82f6;
+  --accent2: #f1f1f1;
+  --danger: #ef4444;
+
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+/* Reset */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 20% 0%, rgba(59,130,246,.25), transparent 60%),
+    radial-gradient(900px 500px at 90% 10%, rgba(34,197,94,.18), transparent 55%),
+    var(--bg);
+  color: var(--text);
+}
+
+/* Top bar */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar__inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 18px;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+}
+.title{
+  margin:0;
+  font-size: 28px;
+  letter-spacing: .2px;
+}
+.subtitle{
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.layout{
+  max-width: 1100px;        
+  margin: 32px auto;       
+  padding: 0 16px 32px;
+
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+
+  justify-content: center; 
+}
+
+
+@media (max-width: 980px){
+  .layout{ grid-template-columns: 1fr; }
+}
+
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.card__title{
+  margin: 0 0 12px;
+  font-size: 16px;
+  letter-spacing: .3px;
+  color: #ffffff;
+}
+
+.panel{
+  display:flex;
+  flex-direction:column;
+  gap: 18px;
+}
+
+.game{
+  display:flex;
+  flex-direction:column;
+  gap: 18px;
+}
+
+
+details{
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.09);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+summary{
+  cursor: pointer;
+  color: #fff;
+  font-weight: 700;
+}
+.list{
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+.list li{
+  margin: 6px 0;
+  color: var(--text);
+}
+
+
+.scorecard{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.scoreline{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 680px){
+  .scoreline{ grid-template-columns: 1fr; }
+}
+
+.label{
+  color: var(--muted);
+  font-weight: 700;
+  margin-right: 6px;
+}
+.highline{
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+}
+
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.btn{
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: .2px;
+  transition: transform .06s ease, background .15s ease, border-color .15s ease;
+}
+.btn:hover{
+  background: rgba(255,255,255,0.13);
+  border-color: rgba(255,255,255,0.28);
+}
+.btn:active{ transform: translateY(1px); }
+.btn.primary{
+  background: rgba(59,130,246,0.26);
+  border-color: rgba(59,130,246,0.55);
+}
+.btn.primary:hover{
+  background: rgba(59,130,246,0.34);
+}
+.btn.danger{
+  background: rgba(239,68,68,0.20);
+  border-color: rgba(239,68,68,0.52);
+}
+.btn.danger:hover{
+  background: rgba(239,68,68,0.28);
+}
+
+/* Board */
+.boardwrap .hint{
+  margin: 10px 2px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+#scrabble-board-container{
+  position: relative;
+  width: min(1129px, 96vw);
+  margin: 6px auto 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.25);
+}
+
+#scrabble-board{
+  display:block;
+  width: 100%;
+  height: auto;
+}
+
+/* Overlay grid
+   IMPORTANT:
+   - This is set to 15 columns to match the full Scrabble row image.
+   - If your JS still generates 7 cells, you’ll only be able to drop in the first 7.
+*/
+#scrabble-board-overlay{
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: 1fr;
+  pointer-events:auto;
+}
+
+/* Each droppable cell */
+.board-cell{
+  position:relative;
+  border: 1px dashed rgba(255,255,255,0.10);
+}
+.board-cell.double-word-score{
+  outline: 2px solid rgba(59,130,246,0.55);
+  outline-offset: -2px;
+  background: rgba(59,130,246,0.08);
+}
+.droppable-hover{
+  background: rgba(34,197,94,0.12) !important;
+}
+
+/* Tiles */
+.tile{
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 8px 18px rgba(0,0,0,.35);
+  border: 1px solid rgba(0,0,0,0.25);
+}
+
+/* When tile is on the board, force it to fill exactly one square */
+.board-cell .tile{
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 6px;
+}
+
+/* Rack */
+.rackwrap{
+  position: relative;
+}
+
+#tile-rack-container{
+  min-height: 210px;
+}
+
+#tile-rack-background{
+  position: relative;
+  height: 140px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+}
+
+#tile-rack{
+  margin-top: -120px;
+  min-height: 140px;
+  display:flex;
+  gap: 10px;
+  justify-content:center;
+  align-items:center;
+  padding: 18px;
+}
+
+/* Footer */
+.footer{
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  padding: 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align:center;
+}
+
+/* Modal */
+.modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 16px;
+  z-index: 50;
+}
+.modal.hidden{ display:none; }
+
+.modal__card{
+  width: min(520px, 96vw);
+  background: #0b1220;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.modal__message{
+  font-weight: 800;
+  margin-bottom: 12px;
+  color:#fff
+}
